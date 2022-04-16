@@ -52,6 +52,9 @@ def split_k_folds(rows, attribute_number, target_data_index, irrelevant_attr_ind
                 attribute_index += 1
         target_data.append(row[target_data_index])
 
+    for i in attribute_data:
+        attribute_data[i] = handle_missing_data(attribute_data[i])
+
     fold_len = math.floor(len(target_data) / k)
     target_class_folds = {}
     attribute_data_folds = {}
