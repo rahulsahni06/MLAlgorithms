@@ -1,5 +1,5 @@
 from abc import abstractmethod
-
+import sys
 
 class Model:
 
@@ -20,3 +20,11 @@ class Model:
     @abstractmethod
     def train(self, train_x_data, train_y_data):
         pass
+
+    @staticmethod
+    def print_prediction_status(current, total):
+        percentage = (current/total) * 100
+        # sys.stdout.write("\r{}/{} predicted".format(current, total))
+        sys.stdout.write("\r{:0.2f}% Done".format(percentage))
+        sys.stdout.flush()
+        # print(f'Status: [{current}/{total}]')

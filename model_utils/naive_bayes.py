@@ -29,14 +29,12 @@ class NaiveBayes(Model):
         for attr in self.attribute_freq:
             self.no_of_attributes += len(self.attribute_freq[attr])
 
-
     def predict(self, x_data):
         prediction = []
-        scores = []
 
         instance_count = len(x_data[0])
 
-        c = 0
+        c = 1
         for instance_index in range(instance_count):
             instance = []
             for attribute_index in x_data:
@@ -64,7 +62,7 @@ class NaiveBayes(Model):
                     predicted_class = cls
 
             prediction.append(predicted_class)
-            scores.append(prob)
-            c = c+1
+            Model.print_prediction_status(c, instance_count)
+            c += 1
 
-        return prediction, scores
+        return prediction

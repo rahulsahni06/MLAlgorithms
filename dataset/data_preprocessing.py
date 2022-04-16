@@ -34,7 +34,27 @@ def handle_missing_data(attribute):
     return attribute
 
 
-def split_k_folds(rows, attribute_number, target_data_index, irrelevant_attr_index, k):
+def replace_categorical_data(attribute):
+    frequency = {}
+    encoder = {}
+
+    for data in attribute:
+        frequency[data] = frequency.get(data, 0) + 1
+
+    code = 1
+    for i in frequency:
+        encoder[i] = code
+        code += 1
+
+    for i, data in enumerate(attribute):
+        for encoder_key in encoder:
+            if data == encoder_key:
+                attribute[i] = "{}".format(encoder[encoder_key])
+
+    return attribute
+
+
+def split_k_folds(rows, attribute_number, target_data_index, irrelevant_attr_index, k, encode_categorical):
     target_data = []
     attribute_data = {}
     for attribute_index in range(attribute_number):
@@ -54,6 +74,10 @@ def split_k_folds(rows, attribute_number, target_data_index, irrelevant_attr_ind
 
     for i in attribute_data:
         attribute_data[i] = handle_missing_data(attribute_data[i])
+
+    if encode_categorical:
+        for i in attribute_data:
+            attribute_data[i] = replace_categorical_data(attribute_data[i])
 
     fold_len = math.floor(len(target_data) / k)
     target_class_folds = {}
