@@ -23,10 +23,14 @@ class Node:
 
 class DecisionTree(Model):
 
-    def __init__(self, max_depth=100, min_instances=2):
+    def __init__(self, max_depth=50, min_instances=2, n_sample_features=None):
         self.max_depth = max_depth
-        self.min_samples = min_instances
+        self.min_instances = min_instances
         self.root = None
+        self.n_sample_features = n_sample_features
+
+    def set_n_sample_features(self, n):
+        self.n_sample_features = n
 
     @staticmethod
     def entropy(y):
@@ -40,23 +44,29 @@ class DecisionTree(Model):
         return -entropy
 
     def train(self, train_x_data, train_y_data):
-        print("training")
+        # print("training")
+        if self.n_sample_features is None:
+            self.n_sample_features = len(train_x_data)
         self.root = self.grow_tree(train_x_data, train_y_data)
-        print("training done")
+        # print("training done")
 
     def grow_tree(self, train_x_data, train_y_data, depth=0):
         freq = get_freq(train_y_data)
-        n_class = len(freq)
         instance_size = len(train_x_data[0])
-        n_attributes = len(train_x_data)
 
-        if depth >= self.max_depth or n_class <= 1 or instance_size <= self.min_samples:
+        if depth >= self.max_depth or len(freq) <= 1 or instance_size <= self.min_instances:
             target_class = most_common_class(train_y_data)
             return Node(target=target_class)
 
-        attributes_indexes = self.get_random_attributes_index(n_attributes)
+        attributes_indexes = self.get_random_attributes_index()
         best_attribute, best_threshold = self.get_best_criteria(train_x_data, train_y_data, attributes_indexes)
         left_indexes, right_indexes = self.split_indexes(train_x_data, best_attribute, best_threshold)
+
+        # print(best_attribute, depth, left_indexes, right_indexes)
+
+        if len(left_indexes) == 0 or len(right_indexes) == 0:
+            target_class = most_common_class(train_y_data)
+            return Node(target=target_class)
 
         left_x_split = {}
         left_y_split = []
@@ -86,11 +96,10 @@ class DecisionTree(Model):
 
         return Node(best_attribute, best_threshold, left=left, right=right)
 
-    @staticmethod
-    def get_random_attributes_index(n_attributes):
+    def get_random_attributes_index(self):
         indexes = []
-        while len(indexes) < n_attributes:
-            n = random.randrange(0, n_attributes)
+        while len(indexes) < self.n_sample_features:
+            n = random.randrange(0, self.n_sample_features)
             if n not in indexes:
                 indexes.append(n)
         return indexes
@@ -102,18 +111,13 @@ class DecisionTree(Model):
         c = 1
         for instance_index in range(instance_count):
             instance = []
-            start = time.time()
             for attribute_index in x_data:
                 instance.append(x_data[attribute_index][instance_index])
-            end = time.time()
-            sys.stdout.write("\r{:0.4f} Done".format(end-start))
-            sys.stdout.flush()
-
-
-
+            # sys.stdout.write("\r{:0.4f} Done".format(end-start))
+            # sys.stdout.flush()
             prediction.append(self.traverse_tree(instance, self.root))
 
-            # Model.print_prediction_status(c, instance_count)
+            Model.print_prediction_status(c, instance_count)
             c += 1
 
         return prediction
@@ -124,7 +128,6 @@ class DecisionTree(Model):
         if instance[node.attribute] <= node.threshold:
             return self.traverse_tree(instance, node.left)
         return self.traverse_tree(instance, node.right)
-
 
     def get_best_criteria(self, train_x_data, train_y_data, attributes_indexes):
         best_gain = -1
