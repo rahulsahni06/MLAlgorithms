@@ -2,6 +2,7 @@ import dataset.data_preprocessing as data_preprocessing
 import dataset.dataset_utils as dataset_utils
 import model_utils.model_utils as model_utils
 from model_utils.naive_bayes import NaiveBayes
+from model_utils.decision_tree import DecisionTree
 from model_utils.knn import KNN, EUCLIDEAN, MANHATTAN
 import sys
 
@@ -10,16 +11,19 @@ if __name__ == "__main__":
     dataset = dataset_utils.MUSROOM_DATASET
     repeat_k_fold = 10
     k_fold = 5
-    model_type = model_utils.KNN
+    model_type = model_utils.DECISION_TREE
     accuracy_k_folds = []
     all_scores = []
 
     if model_type == model_utils.NAIVE_BAYES:
         model = NaiveBayes()
-    else:
+    elif model_type == model_utils.KNN:
         model = KNN(5, EUCLIDEAN)
+    else:
+        model = DecisionTree()
 
-    loaded_data, attribute_no, target_data_index, irrelevant_attributes, encode_categorical = dataset_utils.get_dataset_settings(dataset, model_type)
+    loaded_data, attribute_no, target_data_index, irrelevant_attributes, encode_categorical = dataset_utils\
+        .get_dataset_settings(dataset, model_type)
 
     for i in range(repeat_k_fold):
 

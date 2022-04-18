@@ -124,3 +124,43 @@ def get_train_test_data(target_class_folds, attribute_data_folds, test_fold_inde
 
     return train_class_data, train_attribute_data, test_class_data, test_attribute_data
 
+def get_train_test_data2(target_class_folds, attribute_data_folds, test_fold_index):
+    train_class_data = []
+    train_attribute_data = []
+    test_class_data = []
+    test_attribute_data = []
+
+    attribute_temp = None
+    for fold_index in target_class_folds:
+        if fold_index == test_fold_index:
+            test_class_data.extend(target_class_folds[fold_index])
+
+            for attribute_index in attribute_data_folds[fold_index]:
+
+                attribute_temp = test_attribute_data.get(attribute_index, None)
+                if attribute_temp is None:
+                    attribute_temp = []
+                attribute_temp.extend(attribute_data_folds[fold_index][attribute_index])
+                test_attribute_data[attribute_index] = attribute_temp
+        else:
+            train_class_data.extend(target_class_folds[fold_index])
+            for attribute_index in attribute_data_folds[fold_index]:
+                attribute_temp = train_attribute_data.get(attribute_index, None)
+                if attribute_temp is None:
+                    attribute_temp = []
+                attribute_temp.extend(attribute_data_folds[fold_index][attribute_index])
+                train_attribute_data[attribute_index] = attribute_temp
+
+    return train_class_data, train_attribute_data, test_class_data, test_attribute_data
+
+
+def get_freq(freq_list):
+    freq = {}
+    for element in freq_list:
+        freq[element] = freq.get(element, 0) + 1
+    return freq
+
+
+def most_common_class(y_data):
+    freq = get_freq(y_data)
+    return sorted(freq, reverse=True, key=lambda key: freq[key])[0]
