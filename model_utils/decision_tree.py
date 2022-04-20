@@ -14,6 +14,7 @@ class Node:
         self.target = target
         self.left = left
         self.right = right
+        self.sample_weight = None
 
     def is_leaf(self):
         if self.target:
@@ -33,9 +34,13 @@ class DecisionTree(Model):
         self.n_sample_features = n
 
     @staticmethod
-    def entropy(y):
-        freq = get_freq(y)
-        total = sum(freq.values())
+    def entropy(y, weight):
+        if weight:
+            freq = get_freq(weight)
+            total = sum(weight)
+        else:
+            freq = get_freq(y)
+            total = sum(freq.values())
         entropy = 0
         for element in freq:
             prob = freq[element]/total
@@ -43,14 +48,14 @@ class DecisionTree(Model):
                 entropy += prob * math.log2(prob)
         return -entropy
 
-    def train(self, train_x_data, train_y_data):
+    def train(self, train_x_data, train_y_data, weight_data=None):
         # print("training")
         if self.n_sample_features is None:
             self.n_sample_features = len(train_x_data)
-        self.root = self.grow_tree(train_x_data, train_y_data)
+        self.root = self.grow_tree(train_x_data, train_y_data, weight_data=weight_data)
         # print("training done")
 
-    def grow_tree(self, train_x_data, train_y_data, depth=0):
+    def grow_tree(self, train_x_data, train_y_data, depth=0, weight_data=None):
         freq = get_freq(train_y_data)
         instance_size = len(train_x_data[0])
 
@@ -59,7 +64,7 @@ class DecisionTree(Model):
             return Node(target=target_class)
 
         attributes_indexes = self.get_random_attributes_index()
-        best_attribute, best_threshold = self.get_best_criteria(train_x_data, train_y_data, attributes_indexes)
+        best_attribute, best_threshold = self.get_best_criteria(train_x_data, train_y_data, attributes_indexes, weight_data)
         left_indexes, right_indexes = self.split_indexes(train_x_data, best_attribute, best_threshold)
 
         # print(best_attribute, depth, left_indexes, right_indexes)
@@ -91,8 +96,8 @@ class DecisionTree(Model):
                 right_x_split[x] = attribute_temp
             right_y_split.append(train_y_data[i])
 
-        left = self.grow_tree(left_x_split, left_y_split, depth+1)
-        right = self.grow_tree(right_x_split, right_y_split, depth+1)
+        left = self.grow_tree(left_x_split, left_y_split, depth+1, weight_data)
+        right = self.grow_tree(right_x_split, right_y_split, depth+1, weight_data)
 
         return Node(best_attribute, best_threshold, left=left, right=right)
 
@@ -129,14 +134,14 @@ class DecisionTree(Model):
             return self.traverse_tree(instance, node.left)
         return self.traverse_tree(instance, node.right)
 
-    def get_best_criteria(self, train_x_data, train_y_data, attributes_indexes):
+    def get_best_criteria(self, train_x_data, train_y_data, attributes_indexes, weight_data=None):
         best_gain = -1
         best_threshold = None
         best_attribute = None
         for i in attributes_indexes:
             threshold_freq = get_freq(train_x_data[i])
             for threshold in threshold_freq.keys():
-                gain = self.information_gain(train_x_data, train_y_data, i, threshold)
+                gain = self.information_gain(train_x_data, train_y_data, i, threshold, weight_data)
                 if best_gain < gain:
                     best_gain = gain
                     best_attribute = i
@@ -144,9 +149,9 @@ class DecisionTree(Model):
 
         return best_attribute, best_threshold
 
-    def information_gain(self, train_x_data, train_y_data, attribute_index, split_thresh):
+    def information_gain(self, train_x_data, train_y_data, attribute_index, split_thresh, weight_data=None):
 
-        parent_entropy = self.entropy(train_y_data)
+        parent_entropy = self.entropy(train_y_data, weight_data)
 
         left_indexes, right_indexes = self.split_indexes(train_x_data, attribute_index, split_thresh)
 
@@ -155,17 +160,23 @@ class DecisionTree(Model):
 
         split_left_y_data = []
         split_right_y_data = []
+        split_left_weight_data = []
+        split_right_weight_data = []
 
         for i in left_indexes:
             split_left_y_data.append(train_y_data[i])
+            if weight_data:
+                split_left_weight_data.append(weight_data[i])
 
         for i in right_indexes:
             split_right_y_data.append(train_y_data[i])
+            if weight_data:
+                split_right_weight_data.append(weight_data[i])
 
         # compute the weighted avg. of the loss for the children
         n = len(train_y_data)
         n_l, n_r = len(left_indexes), len(right_indexes)
-        e_l, e_r = self.entropy(split_left_y_data), self.entropy(split_right_y_data)
+        e_l, e_r = self.entropy(split_left_y_data, split_left_weight_data), self.entropy(split_right_y_data, split_right_weight_data)
         child_entropy = (n_l / n) * e_l + (n_r / n) * e_r
 
         # information gain is difference in loss before vs. after split

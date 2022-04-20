@@ -7,14 +7,15 @@ from model_utils.naive_bayes import NaiveBayes
 from model_utils.decision_tree import DecisionTree
 from model_utils.knn import KNN, EUCLIDEAN, MANHATTAN
 from model_utils.random_forest import RandomForest
+from model_utils.adaboost import AdaBoost
 import sys
 
 if __name__ == "__main__":
 
-    dataset = dataset_utils.LETTER_DATASET
+    dataset = dataset_utils.ECOLI_DATASET
     repeat_k_fold = 10
     k_fold = 5
-    model_type = model_utils.RANDOM_FOREST
+    model_type = model_utils.ADA_BOOST
     accuracy_k_folds = []
     all_scores = []
 
@@ -23,9 +24,9 @@ if __name__ == "__main__":
     elif model_type == model_utils.KNN:
         model = KNN(5, EUCLIDEAN)
     elif model_type == model_utils.RANDOM_FOREST:
-        model = RandomForest(n_trees=20)
+        model = RandomForest(n_trees=100)
     else:
-        model = DecisionTree()
+        model = AdaBoost(10)
 
     loaded_data, attribute_no, target_data_index, irrelevant_attributes, encode_categorical = dataset_utils\
         .get_dataset_settings(dataset, model_type)
