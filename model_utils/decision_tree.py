@@ -37,7 +37,7 @@ class DecisionTree(Model):
     def entropy(y, weight):
         if weight:
             freq = get_freq(weight)
-            total = sum(weight)
+            total = sum(freq.values())
         else:
             freq = get_freq(y)
             total = sum(freq.values())
@@ -152,7 +152,6 @@ class DecisionTree(Model):
     def information_gain(self, train_x_data, train_y_data, attribute_index, split_thresh, weight_data=None):
 
         parent_entropy = self.entropy(train_y_data, weight_data)
-
         left_indexes, right_indexes = self.split_indexes(train_x_data, attribute_index, split_thresh)
 
         if len(left_indexes) == 0 or len(right_indexes) == 0:
@@ -173,15 +172,13 @@ class DecisionTree(Model):
             if weight_data:
                 split_right_weight_data.append(weight_data[i])
 
-        # compute the weighted avg. of the loss for the children
         n = len(train_y_data)
-        n_l, n_r = len(left_indexes), len(right_indexes)
-        e_l, e_r = self.entropy(split_left_y_data, split_left_weight_data), self.entropy(split_right_y_data, split_right_weight_data)
-        child_entropy = (n_l / n) * e_l + (n_r / n) * e_r
+        entropy_left = self.entropy(split_left_y_data, split_left_weight_data)
+        entropy_right = self.entropy(split_right_y_data, split_right_weight_data)
+        child_entropy = (len(left_indexes) / n) * entropy_left + (len(right_indexes) / n) * entropy_left
 
-        # information gain is difference in loss before vs. after split
-        ig = parent_entropy - child_entropy
-        return ig
+        return parent_entropy - child_entropy
+
 
     @staticmethod
     def split_indexes(train_x_data, attribute_index, threshold):

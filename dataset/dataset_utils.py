@@ -1,11 +1,11 @@
 from dataset.data_preprocessing import load_data
 import model_utils.model_utils as model_utils
 
-BREAST_DATASET = 1
-CAR_DATASET = 2
-LETTER_DATASET = 3
-MUSROOM_DATASET = 4
-ECOLI_DATASET = 5
+BREAST_DATASET = "breast"
+CAR_DATASET = "car"
+LETTER_DATASET = "letter"
+MUSROOM_DATASET = "mushroom"
+ECOLI_DATASET = "ecoli"
 
 
 def get_dataset_settings(dataset, model_type):
@@ -39,11 +39,13 @@ def get_dataset_settings(dataset, model_type):
         encode_categorical = False
         if model_type == model_utils.KNN:
             encode_categorical = True
-    else:
+    elif dataset == ECOLI_DATASET:
         loaded_data = load_data('dataset/ecoli.data', separator=" ")
         attribute_no = 7
         target_data_index = 8
         irrelevant_attributes = [0]
         encode_categorical = False
+    else:
+        raise ValueError("Invalid dataset type choose from {breast, car, mushroom, letter, ecoli}")
 
     return loaded_data, attribute_no, target_data_index, irrelevant_attributes, encode_categorical

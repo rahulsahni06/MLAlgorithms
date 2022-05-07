@@ -1,5 +1,5 @@
 NAIVE_BAYES = "nb"
 KNN = "knn"
-DECISION_TREE = "decision_tree"
-RANDOM_FOREST = "random_forest"
-ADA_BOOST = "ada_boost"
+DECISION_TREE = "decision"
+RANDOM_FOREST = "forest"
+ADA_BOOST = "ada"

@@ -3,6 +3,7 @@ import math
 from model_utils.model import Model
 from model_utils.decision_tree import DecisionTree
 from dataset.data_preprocessing import get_freq, most_common_class
+import random
 
 class AdaBoost(Model):
 
@@ -24,7 +25,7 @@ class AdaBoost(Model):
             if len(self.alpha) == 0:
                 self.alpha = [0.0] * self.n_stumps
 
-            stump = DecisionTree(max_depth=2, n_sample_features=1)
+            stump = DecisionTree(max_depth=2)
             stump.train(train_x_data, train_y_data, self.weights)
             predicted_y_data = stump.predict(train_x_data)
             not_equal_matrix = self.not_equal_matrix(train_y_data, predicted_y_data)
@@ -32,6 +33,23 @@ class AdaBoost(Model):
             self.alpha[i] = self.calculate_alpha(error)
             self.weights = self.update_weight(self.alpha[i], not_equal_matrix)
             self.stumps.append(stump)
+        print()
+
+    # def get_new_samples(self, train_x, train_y):
+    #     max_range_weight = []
+    #     new_train_x = {}
+    #     new_train_y = []
+    #     for idx, w in enumerate(self.weights):
+    #         if idx == 0:
+    #             max_range_weight[idx] = w
+    #         max_range_weight[idx] = self.weights[idx-1] + w
+    #
+    #     for i in range(len(self.weights)):
+    #         random_value = random.random()
+    #         max = max_range_weight[i]
+    #         min = max - self.weights[i]
+    #         if min < random_value <= max:
+    #             new_train_y[]
 
 
     def predict(self, x_data):

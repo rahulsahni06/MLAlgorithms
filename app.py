@@ -9,24 +9,45 @@ from model_utils.knn import KNN, EUCLIDEAN, MANHATTAN
 from model_utils.random_forest import RandomForest
 from model_utils.adaboost import AdaBoost
 import sys
+import statistics
 
 if __name__ == "__main__":
 
-    dataset = dataset_utils.ECOLI_DATASET
+    # nb, knn, decision, forest, ada
+    model_type = sys.argv[1]
+
+    # breast, car, ecoli, letter, mushroom
+    dataset = sys.argv[2]
+
     repeat_k_fold = 10
     k_fold = 5
-    model_type = model_utils.ADA_BOOST
+
     accuracy_k_folds = []
     all_scores = []
+
+    #KNN parameters
+    k = 3
+    distance = EUCLIDEAN
+
+    #Random forest parameter
+    n_trees = 10
+
+
+    #AdaBoost
+    n_stumps = 5
 
     if model_type == model_utils.NAIVE_BAYES:
         model = NaiveBayes()
     elif model_type == model_utils.KNN:
-        model = KNN(5, EUCLIDEAN)
+        model = KNN(k, distance)
+    elif model_type == model_utils.DECISION_TREE:
+        model = DecisionTree()
     elif model_type == model_utils.RANDOM_FOREST:
-        model = RandomForest(n_trees=100)
+        model = RandomForest(n_trees=n_trees)
+    elif model_type == model_utils.ADA_BOOST:
+        model = AdaBoost(n_stumps)
     else:
-        model = AdaBoost(10)
+        raise ValueError("Invalid model type choose from {nb, knn, decision, forest, ada}")
 
     loaded_data, attribute_no, target_data_index, irrelevant_attributes, encode_categorical = dataset_utils\
         .get_dataset_settings(dataset, model_type)
@@ -50,5 +71,8 @@ if __name__ == "__main__":
             print("\nTimes: {} Fold:{} Accuracy: {}".format(i+1, j+1, acc))
 
     avg_accuracy = sum(accuracy_k_folds)/len(accuracy_k_folds)
-    print("\nAverage accuracy: {}".format(avg_accuracy))
+    std_deviation = statistics.stdev(accuracy_k_folds)
+    print("\n\nAverage accuracy: {}".format(avg_accuracy))
+    print("Standard deviation: {}".format(std_deviation))
+
     print("done")
